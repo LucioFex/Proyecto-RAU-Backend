@@ -8,7 +8,7 @@ class PostsService:
         self.posts = posts
         self.comments = comments
 
-    def list(self, community_id: str | None, q: str | None, limit: int = 20) -> list[PostPublic]:
+    def list_posts(self, community_id: str | None, q: str | None, limit: int = 20) -> list[PostPublic]:
         return self.posts.list(community_id=community_id, q=q, limit=limit)
 
     def create(self, author_id: str, body: PostCreate) -> PostPublic:

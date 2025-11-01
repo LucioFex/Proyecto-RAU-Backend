@@ -7,6 +7,7 @@ from app.core.security import hash_password, verify_password
 class UsersRepo(BaseRepo):
     def __init__(self):
         self.data: Dict[str, dict] = {}  # id -> dict
+        self.onboarding: Dict[str, dict] = {}  # user_id -> onboarding dict
 
     def _gen_id(self) -> str:
         return str(uuid.uuid4())
@@ -23,6 +24,7 @@ class UsersRepo(BaseRepo):
             "avatar_url": None, "title": None, "bio": None
         }
         self.data[uid] = record
+        self.onboarding[uid] = {"done": False, "careers": [], "year": None, "graduation_year": None, "favorite_communities": []}
         return UserPublic(**{k:v for k,v in record.items() if k!="password_hash"})
 
     def get_by_email(self, email: str) -> dict | None:
@@ -43,3 +45,14 @@ class UsersRepo(BaseRepo):
         self.data[user_id].update({k:v for k,v in patch.items() if v is not None})
         rec = self.data[user_id]
         return UserPublic(**{k:v for k,v in rec.items() if k!="password_hash"})
+
+    def get_onboarding(self, user_id: str) -> dict:
+        return self.onboarding.get(user_id, {"done": False, "careers": [], "year": None, "graduation_year": None, "favorite_communities": []})
+
+    def set_onboarding(self, user_id: str, data: dict) -> dict:
+        state = self.onboarding.get(user_id) or {}
+        state.update(data)
+        # marcar como done si tiene al menos algo útil
+        state["done"] = bool(state.get("careers") or state.get("favorite_communities"))
+        self.onboarding[user_id] = state
+        return state

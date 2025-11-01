@@ -1,0 +1,27 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
+[requires]
+python_version = "3.10"
+
+[packages]
+fastapi = ">=0.115"
+uvicorn = {extras = ["standard"], version = ">=0.30"}
+python-dotenv = ">=1.0"
+pydantic-settings = ">=2.5"
+pyjwt = ">=2.9"
+passlib = {version = ">=1.7,<1.8", extras = ["bcrypt"]}
+pydantic = {extras = ["email"], version = "*"}
+bcrypt = "==4.0.1"
+
+[dev-packages]
+pytest = ">=8.0"
+httpx = ">=0.27"
+pytest-asyncio = ">=0.23"
+
+[scripts]
+dev = "uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
+start = "uvicorn app.main:app --host 0.0.0.0 --port 8000"
+tests = "pytest -q"

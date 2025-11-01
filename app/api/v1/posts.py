@@ -6,7 +6,7 @@ router = APIRouter()
 
 @router.get("/posts", response_model=list[PostPublic])
 def list_posts(communityId: str | None = None, q: str | None = None, limit: int = 20, posts: PostsDep = None):
-    return posts.list(community_id=communityId, q=q, limit=limit)
+    return posts.list_posts(community_id=communityId, q=q, limit=limit)
 
 @router.post("/posts", response_model=PostPublic, status_code=201)
 def create_post(body: PostCreate, me: UserIdDep, posts: PostsDep):
