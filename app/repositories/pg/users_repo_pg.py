@@ -4,19 +4,18 @@ from typing import Optional, Dict, Any
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.repositories.base import BaseRepo
 from app.schemas.users import UserCreate, UserPublic
 from app.core.security import hash_password, verify_password
 
-class UsersRepoPG(BaseRepo):
+class UsersRepoPG:
+    """
+    Repositorio de usuarios en Postgres (Neon).
+    Duck-typing compatible con UsersRepo in-memory.
+    """
     def __init__(self, session: AsyncSession):
         self.session = session
 
-    def _gen_id(self) -> str:
-        # en PG usamos bigserial -> lo genera la DB
-        raise NotImplementedError
-
-    # Helpers
+    # ------- helpers -------
     @staticmethod
     def _to_public(row: Dict[str, Any]) -> UserPublic:
         return UserPublic(
@@ -30,6 +29,7 @@ class UsersRepoPG(BaseRepo):
             bio=row.get("bio"),
         )
 
+    # ------- CRUD auth/perfil -------
     async def create(self, user: UserCreate) -> UserPublic:
         q = text("""
             INSERT INTO usuario (email, nombreCompleto, username, rol, bio, avatar_url, password_hash)
@@ -45,7 +45,7 @@ class UsersRepoPG(BaseRepo):
         })
         row = res.mappings().one()
         await self.session.commit()
-        return self._to_public(row)
+        return self._to_public(dict(row))
 
     async def get_by_email(self, email: str) -> Optional[dict]:
         q = text("""
@@ -63,43 +63,45 @@ class UsersRepoPG(BaseRepo):
         """)
         res = await self.session.execute(q, {"id": int(user_id)})
         row = res.mappings().first()
-        return self._to_public(row) if row else None
+        return self._to_public(dict(row)) if row else None
 
     async def verify(self, email: str, password: str) -> Optional[dict]:
         rec = await self.get_by_email(email)
-        if rec and verify_password(password, bytes(rec["password_hash"])):
-            return rec
-        return None
+        if not rec:
+            return None
+        # BYTEA puede venir como memoryview -> convierto a bytes
+        stored = rec["password_hash"]
+        if isinstance(stored, memoryview):
+            stored = stored.tobytes()
+        ok = verify_password(password, bytes(stored))
+        return rec if ok else None
 
     async def update(self, user_id: str, patch: dict) -> Optional[UserPublic]:
         sets = []
         params = {"id": int(user_id)}
-        if "name" in patch and patch["name"] is not None:
+        if (name := patch.get("name")) is not None:
             sets.append("nombreCompleto = :nombre")
-            params["nombre"] = patch["name"]
-        if "title" in patch and patch["title"] is not None:
-            # no hay 'title' en el esquema -> ignoramos o podrías mapearlo a una columna futura
-            pass
-        if "bio" in patch and patch["bio"] is not None:
+            params["nombre"] = name
+        if (bio := patch.get("bio")) is not None:
             sets.append("bio = :bio")
-            params["bio"] = patch["bio"]
-        if "avatar_url" in patch and patch["avatar_url"] is not None:
+            params["bio"] = bio
+        if (avatar := patch.get("avatar_url")) is not None:
             sets.append("avatar_url = :avatar")
-            params["avatar"] = patch["avatar_url"]
-
+            params["avatar"] = avatar
         if not sets:
             return await self.get_public(user_id)
 
         q = text(f"""
-            UPDATE usuario SET {", ".join(sets)} WHERE usuario_id = :id
+            UPDATE usuario SET {", ".join(sets)}
+            WHERE usuario_id = :id
             RETURNING usuario_id, email, nombreCompleto, username, rol, bio, avatar_url
         """)
         res = await self.session.execute(q, params)
         row = res.mappings().first()
         await self.session.commit()
-        return self._to_public(row) if row else None
+        return self._to_public(dict(row)) if row else None
 
-    # --- Onboarding (preferencia_usuario) ---
+    # ------- Onboarding / preferencias -------
     async def get_onboarding(self, user_id: str) -> dict:
         q = text("""
             SELECT carrera_nombre, cuatrimestre, on_boarded
@@ -107,22 +109,19 @@ class UsersRepoPG(BaseRepo):
         """)
         res = await self.session.execute(q, {"id": int(user_id)})
         row = res.mappings().first()
-        base = {
+        return {
             "done": bool(row["on_boarded"]) if row else False,
             "careers": [row["carrera_nombre"]] if row and row["carrera_nombre"] else [],
             "year": row["cuatrimestre"] if row else None,
             "graduation_year": None,
-            "favorite_communities": []  # se deriva por membresías si lo querés
+            "favorite_communities": []
         }
-        return base
 
     async def set_onboarding(self, user_id: str, data: dict) -> dict:
         careers = data.get("careers") or []
         career = careers[0] if careers else None
         year = data.get("year")
         done = bool(career or data.get("favorite_communities"))
-
-        # UPSERT
         q = text("""
             INSERT INTO preferencia_usuario (usuario_id, carrera_nombre, cuatrimestre, on_boarded)
             VALUES (:id, :carrera, :cuatri, :done)
@@ -132,12 +131,7 @@ class UsersRepoPG(BaseRepo):
                           on_boarded = EXCLUDED.on_boarded,
                           actualizado_en = NOW()
         """)
-        await self.session.execute(q, {
-            "id": int(user_id),
-            "carrera": career,
-            "cuatri": year,
-            "done": done
-        })
+        await self.session.execute(q, {"id": int(user_id), "carrera": career, "cuatri": year, "done": done})
         await self.session.commit()
         return {
             "done": done,

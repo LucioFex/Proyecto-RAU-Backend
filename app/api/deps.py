@@ -30,6 +30,11 @@ from app.repositories.pg.communities_repo_pg import CommunitiesRepoPG
 # Seed memoria (si usamos memoria)
 from app.infra.seed import seed_minimal
 
+# Repositorios PG
+from app.repositories.pg.posts_repo_pg import PostsRepoPG
+from app.repositories.pg.comments_repo_pg import CommentsRepoPG
+
+
 security = HTTPBearer(auto_error=False)
 
 def get_current_user_id(creds: HTTPAuthorizationCredentials | None = Depends(security)) -> str | None:
@@ -51,10 +56,8 @@ def build_services(session: AsyncSession | None = None):
         assert session is not None, "AsyncSession requerido para PG"
         users_repo = UsersRepoPG(session)
         comms_repo = CommunitiesRepoPG(session)
-        # por ahora mantenemos posts/comments en memoria hasta la fase 2
-        posts_repo = PostsRepoMem(users_repo=UsersRepoMem())  # dummy local para no romper servicios
-        comments_repo = CommentsRepoMem()
-        # servicios
+        posts_repo = PostsRepoPG(session)        # <<<< PG
+        comments_repo = CommentsRepoPG(session)  # <<<< PG
         return (
             AuthService(users_repo),
             UsersService(users_repo),
