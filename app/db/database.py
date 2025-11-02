@@ -1,6 +1,5 @@
 from __future__ import annotations
 import os
-from contextlib import asynccontextmanager
 from typing import AsyncIterator
 
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker, create_async_engine
@@ -22,7 +21,12 @@ SessionLocal = async_sessionmaker(
     class_=AsyncSession,
 )
 
-@asynccontextmanager
 async def get_session() -> AsyncIterator[AsyncSession]:
+    """
+    Dependencia que proporciona una sesión asíncrona de SQLAlchemy.
+
+    Al no usar @asynccontextmanager, FastAPI gestiona correctamente el ciclo de vida
+    y entrega una instancia de AsyncSession en vez de un context manager.
+    """
     async with SessionLocal() as session:
         yield session
