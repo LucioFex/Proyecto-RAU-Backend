@@ -4,19 +4,19 @@ from app.core.config import settings
 from app.api.v1 import auth, users, communities, posts, comments
 from app.api.v1 import auth, users, communities, posts, comments, health, onboarding
 
-app = FastAPI(title=settings.APP_NAME)
+app = FastAPI(title=settings.app_name)
 
 # CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[o.strip() for o in settings.CORS_ORIGINS.split(",") if o.strip()],
+    allow_origins=settings.cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 # Routers
-api_prefix = settings.API_V1_PREFIX
+api_prefix = settings.api_v1_prefix
 app.include_router(auth.router, prefix=api_prefix, tags=["auth"])
 app.include_router(users.router, prefix=api_prefix, tags=["users"])
 app.include_router(communities.router, prefix=api_prefix, tags=["communities"])
