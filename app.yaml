@@ -16,4 +16,4 @@ env_variables:
 
   # --- Database Connection ---
   # This uses the Neon database URL you provided, adapted for SQLAlchemy's asyncpg driver.
-  DATABASE_URL: "postgresql+asyncpg://neondb_owner:npg_kXdMPw4ou8ia@ep-blue-tree-ahuzle4e-pooler.c-3.us-east-1.aws.neon.tech/rau?sslmode=require"
+  DATABASE_URL: "REPLACE ME"
