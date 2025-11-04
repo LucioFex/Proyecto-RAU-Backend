@@ -373,3 +373,10 @@ COMMIT;
 SELECT setval(pg_get_serial_sequence('post', 'post_id'), (SELECT MAX(post_id) FROM post));
 -- ... Publicación de datos dummy ...
 SELECT setval('post_post_id_seq', (SELECT MAX(post_id) FROM post));
+
+
+----------- Workaround aplicado sobre error de tipos de publicaciones POST -----------
+
+ALTER TABLE post ADD COLUMN etiqueta VARCHAR(20) NOT NULL DEFAULT 'Pregunta';
+-- Definición de valores permitidos (ya que estamos, no hay porqué no)
+ALTER TABLE post ADD CONSTRAINT ck_post_etiqueta CHECK (etiqueta IN ('Pregunta', 'Recurso', 'Apunte', 'Discusión'));
