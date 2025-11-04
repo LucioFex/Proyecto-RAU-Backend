@@ -2,3 +2,4 @@
 .vscode/
 Pipfile.lock
 .snippets.md
+app.yaml
