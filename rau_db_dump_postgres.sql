@@ -367,3 +367,9 @@ VALUES
 
 COMMIT;
 
+
+----------- Workaround aplicado sobre error de publicación de POSTS -----------
+
+SELECT setval(pg_get_serial_sequence('post', 'post_id'), (SELECT MAX(post_id) FROM post));
+-- ... Publicación de datos dummy ...
+SELECT setval('post_post_id_seq', (SELECT MAX(post_id) FROM post));
