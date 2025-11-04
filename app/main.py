@@ -1,12 +1,11 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
-from app.api.v1 import auth, users, communities, posts, comments
-from app.api.v1 import auth, users, communities, posts, comments, health, onboarding
+from app.api.v1 import auth, users, communities, posts, comments, health, onboarding, options  # importa options
 
 app = FastAPI(title=settings.app_name)
 
-# CORS
+# CORS…
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins,
@@ -24,3 +23,4 @@ app.include_router(posts.router, prefix=api_prefix, tags=["posts"])
 app.include_router(comments.router, prefix=api_prefix, tags=["comments"])
 app.include_router(health.router, prefix=api_prefix, tags=["health"])
 app.include_router(onboarding.router, prefix=api_prefix, tags=["onboarding"])
+app.include_router(options.router, prefix=api_prefix, tags=["options"])
