@@ -7,7 +7,7 @@ Backend del proyecto **RAU** (Red Académica Universitaria), desarrollado con **
 ## ⚙️ Requisitos
 
 - Python **3.10**
-- PostgreSQL
+- PostgreSQL 17
 - [Pipenv](https://pipenv.pypa.io/en/latest/)
 
 ---
