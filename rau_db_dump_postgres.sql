@@ -247,7 +247,7 @@ SET TIME ZONE 'UTC';
 INSERT INTO usuario (usuario_id, email, nombreCompleto, username, rol, bio, avatar_url, password_hash)
 VALUES
   (1, 'ana.gomez@rau.edu.ar',    'Ana Gómez',          'anag',   'Profesor',  'Docente de Algoritmos y Estructuras de Datos', 'https://example.com/avatar_ana.jpg',    decode('2432622431322478525663306a4e6a794d794a5262334c487a64736f2e7677446d65556141545a544a3569514d4e62516e46346351376d4c544f4c53', 'hex')),
-  (2, 'carlos.perez@rau.edu.ar', 'Carlos Pérez',       'carlosp','Profesor',  'Profesor de Redes II y comunicaciones',          'https://example.com/avatar_carlos.jpg', decode('2432622431322478525663306a4e6a794d794a5262334c487a64736f2e7677446d65556141545a544a3569514d4e62516e46346351376d4c544f4c53', 'hex')),
+  -- (2, 'carlos.perez@rau.edu.ar', 'Carlos Pérez',       'carlosp','Profesor',  'Profesor de Redes II y comunicaciones',          'https://example.com/avatar_carlos.jpg', decode('2432622431322478525663306a4e6a794d794a5262334c487a64736f2e7677446d65556141545a544a3569514d4e62516e46346351376d4c544f4c53', 'hex')), -- Deprecado
   (3, 'maria.rodriguez@rau.edu.ar','María Rodríguez',  'maria',  'Estudiante','Estudiante de tercer año de Ingeniería en Informática','https://example.com/avatar_maria.jpg', decode('2432622431322466775132585242534a63514b51705149706b6841397541415330385273774f5272724874354c6e6d445a6b702e4a48466847627257', 'hex')),
   (4, 'juan.lopez@rau.edu.ar',   'Juan López',         'juanl',  'Estudiante','Apasionado por la programación y la ciencia de datos',    'https://example.com/avatar_juan.jpg',  decode('2432622431322466775132585242534a63514b51705149706b6841397541415330385273774f5272724874354c6e6d445a6b702e4a48466847627257', 'hex')),
   (5, 'sofia.martinez@rau.edu.ar','Sofía Martínez',    'sofiam', 'Estudiante','Estudiante de primer año, con interés en ciberseguridad','https://example.com/avatar_sofia.jpg', decode('2432622431322466775132585242534a63514b51705149706b6841397541415330385273774f5272724874354c6e6d445a6b702e4a48466847627257', 'hex'));
@@ -371,8 +371,12 @@ COMMIT;
 ----------- Workaround aplicado sobre error de publicación de POSTS -----------
 
 SELECT setval(pg_get_serial_sequence('post', 'post_id'), (SELECT MAX(post_id) FROM post));
--- ... Publicación de datos dummy ...
+-- ... POSTs - datos dummy ...
 SELECT setval('post_post_id_seq', (SELECT MAX(post_id) FROM post));
+
+-- ... USUARIOs - datos dummy ...
+SELECT setval(pg_get_serial_sequence('usuario', 'usuario_id'), (SELECT MAX(usuario_id) FROM usuario));
+SELECT setval('post_post_id_seq', (SELECT MAX(usuario_id) FROM usuario));
 
 
 ----------- Workaround aplicado sobre error de tipos de publicaciones POST -----------
